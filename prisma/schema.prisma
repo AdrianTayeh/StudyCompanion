@@ -1,0 +1,176 @@
+// Prisma schema for Supabase (Postgres) with Supabase Auth
+// - Uses multi-schema access to read from auth.users and write to public tables
+// - Keeps auth.users as an existing table (no schema changes) and references it from public.profiles
+
+datasource db {
+	provider  = "postgresql"
+	// Vercel/Supabase provide these defaults:
+	// - POSTGRES_PRISMA_URL: Transaction Pooler (PgBouncer, port 6543) for runtime
+	// - POSTGRES_URL_NON_POOLING: Session Pooler (port 5432) for migrations/introspection
+	url       = env("POSTGRES_PRISMA_URL")
+	directUrl = env("POSTGRES_URL_NON_POOLING")
+	// Important: only manage our application's public schema.
+	schemas   = ["public"]
+}
+
+generator client {
+	provider = "prisma-client-js"
+}
+
+// Minimal projection of Supabase Auth users table.
+// Do NOT change this model to avoid Prisma trying to migrate Supabase-managed schema.
+// Note: We intentionally do not model auth.users here, to prevent Prisma Migrate
+// from attempting to manage Supabase's auth schema. The Profile.id mirrors auth.users.id.
+
+// Public profile, PK equals auth.users.id. Cascade delete when user is removed.
+model Profile {
+	id          String    @id @db.Uuid // equals auth.users.id
+	displayName String?   @map("display_name")
+	username    String?   @unique
+	avatarUrl   String?   @map("avatar_url")
+	createdAt   DateTime  @default(now()) @map("created_at")
+	updatedAt   DateTime  @updatedAt @map("updated_at")
+
+	notes       Note[]
+	decks       Deck[]
+
+	@@map("profiles")
+	@@schema("public")
+}
+
+model Note {
+	id         String      @id @default(uuid()) @db.Uuid
+	userId     String      @db.Uuid
+	user       Profile     @relation(fields: [userId], references: [id])
+	title      String
+	content    String
+	parsed     Json?
+	source     String?
+	createdAt  DateTime    @default(now()) @map("created_at")
+	updatedAt  DateTime    @updatedAt @map("updated_at")
+
+	flashcards Flashcard[]
+	tags       NoteTag[]
+
+	@@index([userId])
+	@@map("notes")
+	@@schema("public")
+}
+
+model Deck {
+	id          String      @id @default(uuid()) @db.Uuid
+	userId      String      @db.Uuid
+	user        Profile     @relation(fields: [userId], references: [id])
+	title       String
+	description String?
+	createdAt   DateTime    @default(now()) @map("created_at")
+	updatedAt   DateTime    @updatedAt @map("updated_at")
+
+	flashcards  Flashcard[]
+
+	@@index([userId])
+	@@map("decks")
+	@@schema("public")
+}
+
+model Flashcard {
+	id         String    @id @default(uuid()) @db.Uuid
+	deckId     String?   @db.Uuid
+	deck       Deck?     @relation(fields: [deckId], references: [id])
+	noteId     String?   @db.Uuid
+	note       Note?     @relation(fields: [noteId], references: [id])
+	question   String
+	answer     String
+	metadata   Json?
+	createdAt  DateTime   @default(now()) @map("created_at")
+	updatedAt  DateTime   @updatedAt @map("updated_at")
+
+	reviews    Review[]
+
+	@@index([deckId])
+	@@index([noteId])
+	@@map("flashcards")
+	@@schema("public")
+}
+
+model Review {
+	id           String     @id @default(uuid()) @db.Uuid
+	flashcardId  String     @db.Uuid
+	flashcard    Flashcard  @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+	userId       String     @db.Uuid
+	result       Int
+	ease         Float?
+	interval     Int?
+	repetitions  Int?
+	nextReview   DateTime?  @map("next_review")
+	createdAt    DateTime   @default(now()) @map("created_at")
+
+	@@index([flashcardId])
+	@@index([userId])
+	@@map("reviews")
+	@@schema("public")
+}
+
+model Quiz {
+	id         String         @id @default(uuid()) @db.Uuid
+	userId     String         @db.Uuid
+	title      String
+	createdAt  DateTime       @default(now()) @map("created_at")
+
+	questions  QuizQuestion[]
+
+	@@index([userId])
+	@@map("quizzes")
+	@@schema("public")
+}
+
+model QuizQuestion {
+	id          String   @id @default(uuid()) @db.Uuid
+	quizId      String   @db.Uuid
+	quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+	prompt      String
+	options     Json
+	answerIdx   Int      @map("answer_idx")
+	explanation String?
+
+	@@index([quizId])
+	@@map("quiz_questions")
+	@@schema("public")
+}
+
+model StudySession {
+	id          String   @id @default(uuid()) @db.Uuid
+	userId      String   @db.Uuid
+	type        String
+	durationSec Int?     @map("duration_sec")
+	score       Float?
+	createdAt   DateTime @default(now()) @map("created_at")
+
+	@@index([userId])
+	@@map("study_sessions")
+	@@schema("public")
+}
+
+model Tag {
+	id    String   @id @default(uuid()) @db.Uuid
+	name  String   @unique
+	notes NoteTag[]
+
+	@@map("tags")
+	@@schema("public")
+}
+
+model NoteTag {
+	id     String @id @default(uuid()) @db.Uuid
+	noteId String @db.Uuid
+	tagId  String @db.Uuid
+	note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+	tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+	@@unique([noteId, tagId])
+	@@index([noteId])
+	@@index([tagId])
+	@@map("note_tags")
+	@@schema("public")
+}
+
