@@ -1,6 +1,12 @@
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { BookOpen, Brain, TrendingUp, Zap } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "./ui/dropdown-menu";
+import { BookOpen, Brain, LogOut, TrendingUp, User, Zap } from "lucide-react";
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -8,6 +14,7 @@ interface LandingPageProps {
   isLoggedIn?: boolean;
   username?: string;
   onDashboard?: () => void;
+  onLogout?: () => void;
 }
 
 export function LandingPage({
@@ -16,6 +23,7 @@ export function LandingPage({
   isLoggedIn = false,
   username,
   onDashboard = () => {},
+  onLogout = () => {},
 }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-10">
@@ -25,14 +33,29 @@ export function LandingPage({
           <Brain className="w-8 h-8 text-purple-600" />
           <span className="text-xl">Study Companion</span>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           {isLoggedIn ? (
-            <Button
-              onClick={onDashboard}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Dashboard
-            </Button>
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <User className="h-4 w-4" />
+                    <span>{username || 'User'}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-500 focus:text-red-500">
+                    <LogOut className="h-4 w-4 mr-2" /> Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                onClick={onDashboard}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Dashboard
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" onClick={onLogin}>
@@ -126,13 +149,23 @@ export function LandingPage({
       <section className="max-w-4xl mx-auto px-6 py-20 text-center">
         <Card className="p-12 rounded-3xl border-0 shadow-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white">
           <h2 className="mb-4 text-white">Ready to transform your studying?</h2>
-          <Button
-            onClick={onSignup}
-            size="lg"
-            className="bg-white text-purple-600 hover:bg-gray-100"
-          >
-            Start Learning Today
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              onClick={onDashboard}
+              size="lg"
+              className="bg-white text-purple-600 hover:bg-gray-100"
+            >
+              Go to Your Dashboard
+            </Button>
+          ) : (
+            <Button
+              onClick={onSignup}
+              size="lg"
+              className="bg-white text-purple-600 hover:bg-gray-100"
+            >
+              Start Learning Today
+            </Button>
+          )}
         </Card>
       </section>
     </div>

@@ -18,6 +18,18 @@ export default function Home() {
     });
   }, []);
   
+  const handleLogout = async () => {
+    const supabase = createClient();
+    try {
+      await supabase.auth.signOut();
+      setIsLoggedIn(false);
+      setUsername(undefined);
+      router.push("/"); // Redirect to home page after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+  
   return (
     <LandingPage 
       isLoggedIn={isLoggedIn}
@@ -25,6 +37,7 @@ export default function Home() {
       onLogin={() => router.push("/login")}
       onSignup={() => router.push("/signup")}
       onDashboard={() => router.push("/dashboard")}
+      onLogout={() => handleLogout()}
     />
   );
 }
