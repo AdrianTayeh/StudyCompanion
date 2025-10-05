@@ -44,7 +44,10 @@ export function LandingPage({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-500 focus:text-red-500">
+                  <DropdownMenuItem 
+                    onClick={onLogout} 
+                    className="cursor-pointer text-red-500 focus:text-red-500 w-full flex items-center"
+                  >
                     <LogOut className="h-4 w-4 mr-2" /> Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>

@@ -9,7 +9,7 @@ export default function Home() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState<string | undefined>();
-  
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -17,7 +17,7 @@ export default function Home() {
       setUsername(session?.user?.email || session?.user?.user_metadata?.name);
     });
   }, []);
-  
+
   const handleLogout = async () => {
     const supabase = createClient();
     try {
@@ -29,9 +29,9 @@ export default function Home() {
       console.error("Error signing out:", error);
     }
   };
-  
+
   return (
-    <LandingPage 
+    <LandingPage
       isLoggedIn={isLoggedIn}
       username={username}
       onLogin={() => router.push("/login")}
