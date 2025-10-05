@@ -5,9 +5,18 @@ import { BookOpen, Brain, TrendingUp, Zap } from "lucide-react";
 interface LandingPageProps {
   onLogin: () => void;
   onSignup: () => void;
+  isLoggedIn?: boolean;
+  username?: string;
+  onDashboard?: () => void;
 }
 
-export function LandingPage({ onLogin, onSignup }: LandingPageProps) {
+export function LandingPage({
+  onLogin,
+  onSignup,
+  isLoggedIn = false,
+  username,
+  onDashboard = () => {},
+}: LandingPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-green-10">
       {/*Header*/}
@@ -17,15 +26,26 @@ export function LandingPage({ onLogin, onSignup }: LandingPageProps) {
           <span className="text-xl">Study Companion</span>
         </div>
         <div className="flex gap-3">
-          <Button variant="ghost" onClick={onLogin}>
-            Log In
-          </Button>
-          <Button
-            onClick={onSignup}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            Sign Up
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              onClick={onDashboard}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Dashboard
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" onClick={onLogin}>
+                Log In
+              </Button>
+              <Button
+                onClick={onSignup}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -41,13 +61,23 @@ export function LandingPage({ onLogin, onSignup }: LandingPageProps) {
           </p>
         </div>
         <div className="flex gap-4 justify-center">
-          <Button
-            onClick={onLogin}
-            size="lg"
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            Log in to get started
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              onClick={onDashboard}
+              size="lg"
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Go to dashboard
+            </Button>
+          ) : (
+            <Button
+              onClick={onLogin}
+              size="lg"
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Log in to get started
+            </Button>
+          )}
         </div>
       </section>
 
