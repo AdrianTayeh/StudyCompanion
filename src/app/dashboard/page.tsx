@@ -9,42 +9,49 @@ export default function DashboardPage() {
   const router = useRouter();
   const [username, setUsername] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         // Redirect to login if not authenticated
         router.push("/login");
         return;
       }
-      
+
       // Set username from session
-      setUsername(session?.user?.email || session?.user?.user_metadata?.name || "User");
+      setUsername(
+        session?.user?.email || session?.user?.user_metadata?.name || "User"
+      );
       setIsLoading(false);
     };
-    
+
     fetchUser();
   }, [router]);
-  
-  // Handle navigation within the dashboard
+
   const handleNavigate = (view: string) => {
-    switch(view) {
+    switch (view) {
       case "notes":
-        // TODO: Implement notes navigation
-        alert("Notes feature coming soon!");
+        router.push("/dashboard/notes");
         break;
       case "flashcards":
-        // TODO: Implement flashcards navigation
-        alert("Flashcards feature coming soon!");
+        router.push("/dashboard/flashcards");
+        break;
+      case "quiz":
+        router.push("/dashboard/quiz");
+        break;
+      case "progress":
+        router.push("/dashboard/progress");
         break;
       default:
         console.log(`Navigation to ${view} not implemented`);
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -52,11 +59,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-  
-  return (
-    <Dashboard
-      username={username}
-      onNavigate={handleNavigate}
-    />
-  );
+
+  return <Dashboard username={username} onNavigate={handleNavigate} />;
 }
